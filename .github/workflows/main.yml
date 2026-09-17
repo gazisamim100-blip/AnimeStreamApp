@@ -1,50 +1,36 @@
 name: Build Android APK
-
 on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
+push:
+branches: [ "main" ]
+workflow_dispatch:
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Cordova
-        run: npm install -g cordova
-
-      - name: Prepare Project
-        run: |
-          mkdir -p www res
-          cp index.html www/index.html
-          convert -size 512x512 xc:#0b0c0e res/icon.png
-
-      - name: Add Android Platform
-        run: cordova platform add android@13.0.0
-
-      - name: Build Debug APK
-        run: cordova build android --debug
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: StreamApp-Debug-APK
-          path: platforms/android/app/build/outputs/apk/debug/*.apk
-          
+build:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout Code
+uses: actions/checkout@v4
+- name: Setup Java JDK
+uses: actions/setup-java@v4
+with:
+distribution: 'temurin'
+java-version: '17'
+- name: Setup Node.js
+uses: actions/setup-node@v4
+with:
+node-version: 20
+- name: Install Cordova
+run: npm install -g cordova
+- name: Prepare Project Structure
+run: |
+mkdir -p www res
+cp index.html www/index.html
+python3 -c "import base64; open('res/icon.png', 'wb').write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='))"
+- name: Add Android Platform
+run: cordova platform add android@13.0.0
+- name: Build Debug APK
+run: cordova build android --debug
+- name: Upload APK Artifact
+uses: actions/upload-artifact@v4
+with:
+name: StreamApp-Debug-APK
+path: platforms/android/app/build/outputs/apk/debug/*.apk
