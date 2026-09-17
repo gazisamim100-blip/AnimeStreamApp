@@ -1,44 +1,50 @@
 name: Build Android APK
+
 on:
-push:
-branches: [ "main" ]
-workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
 jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout Code
-uses: actions/checkout@v4
-- name: Setup Node.js
-uses: actions/setup-node@v4
-with:
-node-version: 20
-- name: Setup Java JDK
-uses: actions/setup-java@v4
-with:
-distribution: 'zulu'
-java-version: '17'
-- name: Setup Android SDK
-uses: android-actions/setup-android@v3
-- name: Install Cordova
-run: |
-npm install -g cordova
-- name: Prepare Project Structure & App Icon
-run: |
-mkdir -p www res
-if [ -f "index.html" ]; then
-cp index.html www/index.html
-fi
-echo '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" rx="115" fill="#0b0c0e"/><rect x="16" y="16" width="480" height="480" rx="99" fill="none" stroke="#2563eb" stroke-width="8" stroke-dasharray="16 12"/><path d="M 330 180 C 330 145, 290 130, 256 130 C 205 130, 175 160, 175 205 C 175 270, 337 255, 337 325 C 337 375, 295 382, 256 382 C 200 382, 170 345, 170 305" fill="none" stroke="#3b82f6" stroke-width="44" stroke-linecap="round"/><polygon points="340,325 380,290 380,360" fill="#3b82f6"/></svg>' > res/icon.svg
-npx -y svgexport res/icon.svg res/icon.png 512:512 || convert res/icon.svg res/icon.png || touch res/icon.png
-- name: Add Android Platform
-run: |
-cordova platform add android@13.0.0
-- name: Build Debug APK
-run: |
-cordova build android --debug
-- name: Upload APK Artifact
-uses: actions/upload-artifact@v4
-with:
-name: StreamApp-APK
-path: platforms/android/app/build/outputs/apk/debug/*.apk
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Prepare Project
+        run: |
+          mkdir -p www res
+          cp index.html www/index.html
+          convert -size 512x512 xc:#0b0c0e res/icon.png
+
+      - name: Add Android Platform
+        run: cordova platform add android@13.0.0
+
+      - name: Build Debug APK
+        run: cordova build android --debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamApp-Debug-APK
+          path: platforms/android/app/build/outputs/apk/debug/*.apk
+          
